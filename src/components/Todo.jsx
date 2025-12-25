@@ -1,7 +1,16 @@
-import {useState } from "react";
+import {useState, useRef, useEffect } from "react";
+function usePrevious(value){
+    const ref= useRef(null);
+    useEffect(()=> {
+        ref.current = value;
+    });
+    return ref.current;
+}
 function Todo(props){
     const [isEditing, setEditing] = useState(false);
     const [newName, setNewName]= useState("");
+    const editFieldRef =useRef(null);
+    const editButtonRef= useRef(null);
     function handleChange(e){
         setNewName(e.target.value);
     }
@@ -22,6 +31,7 @@ function Todo(props){
                        type="text" 
                        value={newName}
                        onChange={handleChange}
+                       ref={editFieldRef}
                        />
             </div>
             <div className="btn-group">
@@ -53,7 +63,8 @@ function Todo(props){
             <div className="btn-group">
                 <button className="btn" 
                         type="button"
-                        onClick={() => setEditing(true)}>
+                        onClick={() => setEditing(true)}
+                        ref={editButtonRef}>
                     Edit <span className="visually-hidden">{props.name}</span>
                 </button>
                 <button className="btn btn__danger" 
@@ -64,7 +75,17 @@ function Todo(props){
             </div>
         </div>
     );
-    
+    const wasEditing =usePrevious(isEditing);
+    //passing array as the second argument for dependent values
+    useEffect(()=> {
+        if(!wasEditing && isEditing)
+        {
+            editFieldRef.current.focus();
+        } else if(wasEditing && !isEditing){
+            editButtonRef.current.focus();
+        }
+    },[wasEditing, isEditing]
+    );
     return (<li className="todo"> {isEditing ? editingTemplate : viewTemplate}</li>);
 }
 
